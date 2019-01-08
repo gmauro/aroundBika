@@ -3,11 +3,12 @@
   become_user: "{{ BIKA_USER }}"
   pip: name={{ item }} extra_args='--user' editable=false
   with_items:
+    - docutils
     - paste
     - python-daemon
     - lockfile
     - bottle
-    - git+https://github.com/ratzeni/bika.client.git
+    - bikaclient
 
 - name: install aroundBika bundle
   become: yes
