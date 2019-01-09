@@ -24,7 +24,7 @@
     - { regexp: "DUMMY_WRITE_REST_URL", repl: "{{ lookup('env', 'WRITE_REST_URL') | default('http://localhost:8086', true) }}" }
     - { regexp: "DUMMY_BIKA_HOST", repl: " {{ lookup('env', 'BIKA_HOST') | default('http://bikaplone:8080/Plone', true) }}" }
     - { regexp: "DUMMY_IRODS_RESOURCE", repl: "{{ lookup('env', 'IRODS_RESOURCE') | default('demoResc', true) }}" }
-    - { regexp: "DUMMY_IRODS_SAMPLESHEET_COLLECTION", repl: "{{ lookup('env', '/tempZone/home/iuser') | default('admin', true) }}" }
+    - { regexp: "DUMMY_IRODS_SAMPLESHEET_COLLECTION", repl: "{{ lookup('env', 'IRODS_SAMPLESHEET_COLLECTION') | default('/tempZone/home/iuser', true) }}" }
     - { regexp: "DUMMY_IRODS_HOST", repl: "{{ lookup('env', 'IRODS_HOST') | default('irods', true) }}" }
     - { regexp: "DUMMY_IRODS_USER", repl: "{{ lookup('env', 'IRODS_USER') | default('iuser', true) }}" }
     - { regexp: "DUMMY_IRODS_PASSWORD", repl: "{{ lookup('env', 'IRODS_PASSWORD') | default('irods123', true) }}" }
@@ -35,6 +35,8 @@
     - { regexp: "DUMMY_RUN_FOLDERS", repl: "{{lookup('env', ' RUN_FOLDERS') | default(' ', true) }}" }
     - { regexp: "DUMMY_RUN_INFO_FILE", repl: "{{ lookup('env', 'RUN_INFO_FILE') | default('RunInfo.xml', true) }}" }
     - { regexp: "DUMMY_RUN_PARAMETERS_FILE", repl: "{{lookup('env', ' RUN_PARAMETERS_FILE') | default('runParameters.xml', true) }}" }
+    - { regexp: "DUMMY_REPORT_FOLDER", repl: "{{ lookup('env', 'REPORT_FOLDER') | default('qc', true) }}" }
+    - { regexp: "DUMMY_REPORT_HOST", repl: "{{ lookup('env', 'REPORT_HOST') | default('http://qc', true) }}" }
 
 - name: copy virtualhost config
   become: yes
