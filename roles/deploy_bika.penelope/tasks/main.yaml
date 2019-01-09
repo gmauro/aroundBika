@@ -1,0 +1,54 @@
+- name: install packages needed by bika.penelope
+  become: yes
+  apt: name={{ item }} state=latest update_cache=yes
+  with_items:
+    - apache2
+    - git
+    - supervisor
+  when: ansible_os_family == "Debian"
+
+- name: download bika.penelope
+  become: yes
+  become_user: "{{ BIKA_USER }}"
+  git: repo={{ item.repo }} dest={{ item.dest }} force=yes
+  with_items:
+    - { repo: 'https://github.com/ratzeni/bika.penelope.git', dest: "/home/{{ BIKA_USER }}/bika.penelope" }
+    
+- name: rename init.module.js.sample
+  command: mv /home/{{ BIKA_USER }}/bika.penelope/app/init.module.js.sample /home/{{ BIKA_USER }}/bika.penelope/app/init.module.js
+
+- name: replace vars into bika.penelope config script
+  replace: dest="/home/{{ BIKA_USER }}/bika.penelope/app/init.module.js" regexp="{{ item.regexp }}" replace="{{ item.repl }}"
+  with_items:
+    - { regexp: "DUMMY_READ_REST_URL", repl: "{{ lookup('env', 'READ_REST_URL') | default('http://localhost:8088', true) }}" }
+    - { regexp: "DUMMY_WRITE_REST_URL", repl: "{{ lookup('env', 'WRITE_REST_URL') | default('http://localhost:8086', true) }}" }
+    - { regexp: "DUMMY_BIKA_HOST", repl: " {{ lookup('env', 'BIKA_HOST') | default('http://bikaplone:8080/Plone', true) }}" }
+    - { regexp: "DUMMY_IRODS_RESOURCE", repl: "{{ lookup('env', 'IRODS_RESOURCE') | default('demoResc', true) }}" }
+    - { regexp: "DUMMY_IRODS_SAMPLESHEET_COLLECTION", repl: "{{ lookup('env', '/tempZone/home/iuser') | default('admin', true) }}" }
+    - { regexp: "DUMMY_IRODS_HOST", repl: "{{ lookup('env', 'IRODS_HOST') | default('irods', true) }}" }
+    - { regexp: "DUMMY_IRODS_USER", repl: "{{ lookup('env', 'IRODS_USER') | default('iuser', true) }}" }
+    - { regexp: "DUMMY_IRODS_PASSWORD", repl: "{{ lookup('env', 'IRODS_PASSWORD') | default('irods123', true) }}" }
+    - { regexp: "DUMMY_IRODS_ZONE", repl: "{{ lookup('env', 'IRODS_ZONE') | default('tempZone', true) }}" }
+    - { regexp: "DUMMY_SSH_HOST", repl: "{{ lookup('env', 'SSH_HOST') | default(' ', true) }}" }
+    - { regexp: "DUMMY_SSH_USER", repl: "{{ lookup('env', 'SSH_USER') | default(' ', true) }}" }
+    - { regexp: "DUMMY_TMP_FOLDER", repl: "{{ lookup('env', 'TMP_FOLDER') | default('/tmp', true) }}" }
+    - { regexp: "DUMMY_RUN_FOLDERS", repl: "{{lookup('env', ' RUN_FOLDERS') | default(' ', true) }}" }
+    - { regexp: "DUMMY_RUN_INFO_FILE", repl: "{{ lookup('env', 'RUN_INFO_FILE') | default('RunInfo.xml', true) }}" }
+    - { regexp: "DUMMY_RUN_PARAMETERS_FILE", repl: "{{lookup('env', ' RUN_PARAMETERS_FILE') | default('runParameters.xml', true) }}" }
+
+- name: copy virtualhost config
+  become: yes
+  template: src=virtualhost.j2 dest=/etc/apache2/sites-available/bika.penelope.conf mode=0644
+
+- name: apache2 listen on port 8081
+  lineinfile: dest=/etc/apache2/ports.conf regexp="^Listen 80" line="Listen 80\nListen 8081" state=present
+  notify:
+    - restart apache2
+
+- name: a2ensite bika.penelope
+  become: yes
+  command: a2ensite bika.penelope
+  args:
+    creates: /etc/apache2/sites-enabled/bika.penelope.conf
+  notify:
+    - restart apache2

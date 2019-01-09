@@ -1,0 +1,20 @@
+<VirtualHost *:8081>
+        ServerAdmin webmaster@localhost
+
+        DocumentRoot /home/{{ BIKA_USER }}/bika.penelope
+        <Directory /home/{{ BIKA_USER }}/bika.penelope>
+                Options FollowSymLinks
+                AllowOverride AuthConfig FileInfo
+                Order allow,deny
+                Allow from all
+                Require all granted
+        </Directory>
+
+        ErrorLog  /home/{{ BIKA_USER }}/error.log
+
+        # Possible values include: debug, info, notice, warn, error, crit,
+        # alert, emerg.
+        LogLevel warn
+
+        CustomLog  /home/{{ BIKA_USER }}/access.log combined
+</VirtualHost>
