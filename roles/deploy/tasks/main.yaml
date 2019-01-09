@@ -79,6 +79,9 @@
     - { regexp: "DUMMY_SERVER_READ", repl: "paste" }
     - { regexp: "DUMMY_SERVER_WRITE", repl: "wsgiref" }
 
+- name: Source bika.webservice configuration
+  lineinfile: dest=/home/bika/.bashrc line="source /home/bika/bika.webservice/init.cfg" state=present create=yes
+
 - name: copy virtualhost config
   become: yes
   template: src=virtualhost.j2 dest=/etc/apache2/sites-available/bika.conf mode=0644
