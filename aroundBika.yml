@@ -4,4 +4,4 @@
   roles:
   - user
   - setup
-  - deploy
+  - deploy_bika.webservice

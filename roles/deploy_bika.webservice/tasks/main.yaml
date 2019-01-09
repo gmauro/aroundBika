@@ -1,0 +1,63 @@
+- name: install bika.webservice dependencies
+  become: yes
+  become_user: "{{ BIKA_USER }}"
+  pip: name={{ item }} extra_args='--user' editable=false
+  with_items:
+    - lxml
+    - docutils
+    - paste
+    - python-daemon
+    - lockfile
+    - bottle
+    - bikaclient
+
+- name: install aroundBika bu
+  become: yes
+  become_user: "{{ BIKA_USER }}"
+  git: repo={{ item.repo }} dest={{ item.dest }} force=yes
+  with_items:
+    - { repo: 'https://github.com/ratzeni/bika.penelope.git', dest: "/home/{{ BIKA_USER }}/bika.penelope" }
+    - { repo: 'https://github.com/ratzeni/bika.webservice.git', dest: "/home/{{ BIKA_USER }}/bika.webservice" }
+    - { repo: 'https://github.com/gmauro/alta.git', dest: "/home/{{ BIKA_USER }}/alta" }
+
+- name: download alta library and bika.webservice
+  become: yes
+  become_user: "{{ BIKA_USER }}"
+  git: repo={{ item.repo }} dest={{ item.dest }} force=yes
+  with_items:
+    - { repo: 'https://github.com/ratzeni/bika.webservice.git', dest: "/home/{{ BIKA_USER }}/bika.webservice" }
+    - { repo: 'https://github.com/gmauro/alta.git', dest: "/home/{{ BIKA_USER }}/alta" }
+
+- name: install alta library
+  become: yes
+  become_user: "{{ BIKA_USER }}"
+  command: chdir=/home/{{ BIKA_USER }}/alta  python setup.py install --user
+
+- name: rename init.cfg.sample
+  command: mv /home/{{ BIKA_USER }}/bika.webservice/init.cfg.sample /home/{{ BIKA_USER }}/bika.webservice/init.cfg
+
+- name: create bika.webservice dirs
+  become: yes
+  become_user: "{{ BIKA_USER }}"
+  file: path={{ item }} state=directory mode=0755
+  with_items:
+    - /home/{{ BIKA_USER }}/var/run
+    - /home/{{ BIKA_USER }}/var/log
+
+- name: replace vars into bika.webservice config script
+  replace: dest="/home/{{ BIKA_USER }}/bika.webservice/init.cfg" regexp="{{ item.regexp }}" replace="{{ item.repl }}"
+  with_items:
+    - { regexp: "DUMMY_SERVICE_DIR", repl: "$HOME/bika.webservice" }
+    - { regexp: "DUMMY_PID_FILE_READ", repl: "$HOME/var/run/bika_service.read.pid" }
+    - { regexp: "DUMMY_PID_FILE_WRITE", repl: "$HOME/var/run/bika_service.write.pid" }
+    - { regexp: "DUMMY_LOG_FILE_READ", repl: "$HOME/var/log/bika_service.read.log" }
+    - { regexp: "DUMMY_LOG_FILE_WRITE", repl: "$HOME/var/log/bika_service.write.log" }
+    - { regexp: "DUMMY_HOST", repl: "localhost" }
+    - { regexp: "DUMMY_PORT_READ", repl: "8088" }
+    - { regexp: "DUMMY_PORT_WRITE", repl: "8086" }
+    - { regexp: "DUMMY_SERVER_READ", repl: "paste" }
+    - { regexp: "DUMMY_SERVER_WRITE", repl: "wsgiref" }
+
+- name: Source bika.webservice configuration
+  lineinfile: dest=/home/bika/.bashrc line="source /home/bika/bika.webservice/init.cfg" state=present create=yes
+
