@@ -1,3 +1,11 @@
+- name: install packages needed by bika.webservice
+  become: yes
+  apt: name={{ item }} state=latest update_cache=yes
+  with_items:
+    - git
+    - supervisor
+  when: ansible_os_family == "Debian"
+
 - name: install bika.webservice dependencies
   become: yes
   become_user: "{{ BIKA_USER }}"
@@ -10,15 +18,6 @@
     - lockfile
     - bottle
     - bikaclient
-
-- name: install aroundBika bu
-  become: yes
-  become_user: "{{ BIKA_USER }}"
-  git: repo={{ item.repo }} dest={{ item.dest }} force=yes
-  with_items:
-    - { repo: 'https://github.com/ratzeni/bika.penelope.git', dest: "/home/{{ BIKA_USER }}/bika.penelope" }
-    - { repo: 'https://github.com/ratzeni/bika.webservice.git', dest: "/home/{{ BIKA_USER }}/bika.webservice" }
-    - { repo: 'https://github.com/gmauro/alta.git', dest: "/home/{{ BIKA_USER }}/alta" }
 
 - name: download alta library and bika.webservice
   become: yes
@@ -52,7 +51,7 @@
     - { regexp: "DUMMY_PID_FILE_WRITE", repl: "$HOME/var/run/bika_service.write.pid" }
     - { regexp: "DUMMY_LOG_FILE_READ", repl: "$HOME/var/log/bika_service.read.log" }
     - { regexp: "DUMMY_LOG_FILE_WRITE", repl: "$HOME/var/log/bika_service.write.log" }
-    - { regexp: "DUMMY_HOST", repl: "localhost" }
+    - { regexp: "DUMMY_HOST", repl: "0.0.0.0" }
     - { regexp: "DUMMY_PORT_READ", repl: "8088" }
     - { regexp: "DUMMY_PORT_WRITE", repl: "8086" }
     - { regexp: "DUMMY_SERVER_READ", repl: "paste" }
